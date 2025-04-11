@@ -159,7 +159,8 @@ import 'package:flutter_application_1/screens/upload_screen.dart';
 import 'home_screen.dart';
 import 'package:flutter_application_1/utils/color_utils.dart';
 import 'package:flutter_application_1/reusable_widgets/reusable_widget.dart';
-
+import 'package:provider/provider.dart';
+import 'package:flutter_application_1/themes/theme_provider.dart';
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
 

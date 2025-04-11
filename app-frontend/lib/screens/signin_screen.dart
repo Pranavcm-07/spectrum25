@@ -299,6 +299,8 @@ import 'signup_screen.dart';
 import 'package:flutter_application_1/utils/color_utils.dart';
 import 'package:flutter_application_1/reusable_widgets/reusable_widget.dart';
 
+import 'package:provider/provider.dart';
+import 'package:flutter_application_1/themes/theme_provider.dart';
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
 
@@ -324,6 +326,8 @@ class _SignInScreenState extends State<SignInScreen> {
             Navigator.pop(context);
           },
         ),
+
+
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -348,6 +352,13 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                   ),
                   SizedBox(height: 5),
+                      IconButton(
+                        icon: const Icon(Icons.brightness_6),
+                        onPressed: () {
+                          Provider.of<ThemeProvider>(context, listen: false).toogleTheme();
+                        },
+                      ),
+                      SizedBox(height: 5),
                   Text(
                     "Welcome Back!",
                     style: TextStyle(
