@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/themes/theme_provider.dart';
+import 'package:provider/provider.dart';
 
 class DashboardScreen extends StatefulWidget {
   final Map<String, dynamic> data; // Accept JSON data
@@ -15,9 +17,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     List<dynamic> predictions = widget.data["predictions"] ?? [];
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back,
@@ -26,6 +26,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Navigator.pop(context);
           },
         ),
+        actions: [
+        const SizedBox(height: 5),
+        IconButton(
+          icon: const Icon(Icons.brightness_6),
+          onPressed: () {
+            Provider.of<ThemeProvider>(context, listen: false).toogleTheme();
+          },
+        ),
+      ],
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -47,7 +56,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Text(
                 "Your data, your decisions",
                 style: TextStyle(
-                  color: Colors.black87,
+                  // color: Colors.black87,
                   fontFamily: "Roboto",
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
@@ -59,7 +68,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Text(
                 "Predictions & Compliance Status",
                 style: TextStyle(
-                  color: Colors.black87,
+                  // color: Colors.black87,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),

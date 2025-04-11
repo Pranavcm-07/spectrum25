@@ -14,6 +14,8 @@ from sentence_transformers import SentenceTransformer
 from sklearn.metrics import accuracy_score, log_loss
 from neo4j import GraphDatabase
 from pydantic import BaseModel
+import google.generativeai as genai  # Gemini API Integration
+from fastapi import File, UploadFile
 
 # Load environment variables
 load_dotenv()
@@ -26,6 +28,13 @@ logger = logging.getLogger(__name__)
 API_KEY = os.getenv("API_KEY")
 API_KEY_NAME = "X-API-Key"
 
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if GEMINI_API_KEY is None:
+    raise ValueError("Gemini API key not set")
+
+genai.configure(api_key=GEMINI_API_KEY)
+gemini_model = genai.GenerativeModel('gemini-1.5-pro')
+
 def get_api_key(x_api_key: str = Header(...)):
     if x_api_key != API_KEY:
         raise HTTPException(status_code=403, detail="Invalid API Key")
@@ -35,7 +44,7 @@ def get_api_key(x_api_key: str = Header(...)):
 app = FastAPI(title="GDPR Compliance API", version="2.0")
 
 # --- Connect to Neo4j ---
-NEO4J_URI = "bolt://localhost:7687"  
+NEO4J_URI = "bolt://localhost:7687"
 NEO4J_USER = "neo4j"
 NEO4J_PASSWORD = "gdprgdpr"  # Replace with actual credentials
 
@@ -49,10 +58,10 @@ def load_and_preprocess_data():
     df2 = pd.read_csv("gdpr_text_noisy.csv")
     dataset = pd.concat([df1, df2]).drop_duplicates()
     dataset['summary'] = dataset['summary'].fillna('')
-    
+
     le = LabelEncoder()
     dataset['condition'] = le.fit_transform(dataset['condition'])  # 0 = Violation, 1 = Compliant
-    
+
     return dataset, le
 
 # --------------------------------------
@@ -107,7 +116,6 @@ def get_related_articles(text):
         articles = [{"article": record["article"], "related_entities": record["related_entities"]} for record in result]
     return articles if articles else None
 
-
 # --------------------------------------
 # Initialize Models
 # --------------------------------------
@@ -148,10 +156,6 @@ except Exception as e:
 class TextInput(BaseModel):
     text: str
 
-from fastapi import File, UploadFile
-
-from fastapi import File, UploadFile
-
 @app.post("/predict_file")
 async def predict_file(file: UploadFile = File(...)):
     """
@@ -160,7 +164,7 @@ async def predict_file(file: UploadFile = File(...)):
     """
     content = await file.read()
     sentences = content.decode("utf-8").strip().split(".")
-    
+
     results = []
     for sentence in sentences:
         sentence = sentence.strip()
@@ -168,19 +172,32 @@ async def predict_file(file: UploadFile = File(...)):
             X_input = np.array(app.state.legalbert_model.encode([sentence], batch_size=1, convert_to_numpy=True))
             prediction = int(app.state.xgb_model.predict(X_input)[0])
             prediction_proba = app.state.xgb_model.predict_proba(X_input)[0]
-            
+
             shap_explanation = explain_prediction(app.state.xgb_model, X_input, app.state.feature_map)
             compliance_status = "Violation" if prediction == 0 else "Compliant"
             related_articles = get_related_articles(sentence)
-            
+
+            # Gemini Explanation
+            prompt = (
+                f"Analyze the following text and explain why it is considered in 2 lines '{compliance_status}' "
+                f"under GDPR guidelines. Provide a summary and any suggestions for improvement in another 2 lines:\n\n{sentence}"
+            )
+            try:
+                gemini_response = gemini_model.generate_content(prompt)
+                gemini_summary = gemini_response.text if gemini_response else "No response from Gemini API."
+            except Exception as e:
+                logger.error(f"Error with Gemini API: {e}")
+                gemini_summary = "Gemini API unavailable."
+
             results.append({
                 "text": sentence,
                 "compliance_status": compliance_status,
                 "confidence": float(max(prediction_proba)),
                 "related_articles": related_articles,
-                "shap_values": shap_explanation
+                "shap_values": shap_explanation,
+                "gemini_summary": gemini_summary
             })
-    
+
     return JSONResponse(content={"predictions": results})
 
 # --------------------------------------

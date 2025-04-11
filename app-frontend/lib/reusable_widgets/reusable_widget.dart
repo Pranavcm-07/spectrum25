@@ -174,34 +174,32 @@ Image logoWidget(String imageName) {
 //   );
 // }
 
-TextField reusableTextField(String text, IconData icon, bool isPasswordType,
-    TextEditingController controller) {
+TextField reusableTextField(
+  String text,
+  IconData icon,
+  bool isPasswordType,
+  TextEditingController controller
+  ) {
   return TextField(
     controller: controller,
     obscureText: isPasswordType,
     enableSuggestions: !isPasswordType,
     autocorrect: !isPasswordType,
-    cursorColor: Color.fromARGB(255, 51, 85, 255), // Blue cursor
-    style: TextStyle(color: Colors.black), // Black text
     decoration: InputDecoration(
-      prefixIcon: Icon(
-        icon,
-        color: Color.fromARGB(255, 51, 85, 255), // Blue icon
-      ),
+      prefixIcon: Icon(icon),
       labelText: text,
-      labelStyle: TextStyle(color: Colors.black54), // Dark gray label
       filled: true,
       floatingLabelBehavior: FloatingLabelBehavior.never,
-      fillColor: Colors.grey[200], // Light gray background
+      fillColor: Colors.transparent,
       border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10.0),
-          borderSide: BorderSide.none), // No border
+        borderRadius: BorderRadius.circular(12.0),
+        borderSide: const BorderSide(color: Colors.white30),
+      ),
     ),
-    keyboardType: isPasswordType
-        ? TextInputType.visiblePassword
-        : TextInputType.emailAddress,
+    keyboardType: isPasswordType ? TextInputType.visiblePassword : TextInputType.emailAddress,
   );
 }
+
 
 
 
