@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/screens/dashboard_screen.dart';
 import 'package:flutter_application_1/screens/history_screen.dart';
 import 'package:flutter_application_1/themes/theme_provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -65,8 +66,8 @@ class _UploadScreenState extends State<UploadScreen> {
 
     File firstFile = selectedFiles.first;
     String fileName = firstFile.path.split('/').last;
-    String apiUrl = "http://172.16.45.135:8000/predict_file";
-    String apiKey = "abc123secretXYZ";
+    String apiUrl = dotenv.env["FASTAPI_URL"] ?? "http://172.16.45.135:8000/predict_file";
+    String apiKey = dotenv.env["FAST_API_KEY"] ?? "abc123secretXYZ";
 
     if (apiUrl.isEmpty || apiKey.isEmpty) {
       print("API URL or API Key is missing");
